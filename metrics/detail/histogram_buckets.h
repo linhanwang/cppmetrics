@@ -157,10 +157,7 @@ class HistogramBuckets {
   typename std::vector<BucketType>::iterator end() { return buckets_.end(); }
 
  private:
-  std::uint64_t countFromBucket(const Bucket& bucket) const { return bucket.count; }
-  ValueType sumFromBucket(const Bucket& bucket) const { return bucket.sum; }
-
-  ValueType avgFromBucket(const Bucket& bucket) const {
+  static ValueType avgFromBucket(const Bucket& bucket) {
     if (bucket.count == 0) {
       return ValueType(0);
     }
@@ -181,7 +178,6 @@ class HistogramBuckets {
   ValueType min_;
   ValueType max_;
   std::vector<BucketType> buckets_;
-  mutable std::vector<std::uint64_t> counts_;
 };
 
 }  // namespace detail

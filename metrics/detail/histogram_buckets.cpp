@@ -21,7 +21,6 @@ HistogramBuckets::HistogramBuckets(ValueType bucketSize, ValueType min,
   // Add 2 for the extra 'below min' and 'above max' buckets
   numBuckets += 2;
   buckets_.assign(std::size_t(numBuckets), defaultBucket);
-  counts_.assign(std::size_t(numBuckets), 0);
 }
 
 std::size_t HistogramBuckets::getBucketIdx(ValueType value) const {
@@ -38,34 +37,29 @@ std::size_t HistogramBuckets::getBucketIdx(ValueType value) const {
 double HistogramBuckets::computeAvg() const {
   std::uint64_t count = 0;
   for (std::size_t n = 0; n < buckets_.size(); ++n) {
-    count += countFromBucket(const_cast<const BucketType&>(buckets_[n]));
+    count += buckets_[n].count;
   }
   if (count == 0) return 0;
 
   ValueType sum = 0;
   for (std::size_t n = 0; n < buckets_.size(); ++n) {
-    sum += sumFromBucket(const_cast<const BucketType&>(buckets_[n]));
+    sum += buckets_[n].sum;
   }
 
   return static_cast<double>(sum) / static_cast<double>(count);
 }
 
-std::size_t HistogramBuckets::getPercentileBucketIdx(double pct,
-                                                double* lowPct,
-                                                double* highPct) const {
+std::size_t HistogramBuckets::getPercentileBucketIdx(double pct, double* lowPct,
+                                                     double* highPct) const {
   CHECK_GE(pct, 0.0);
   CHECK_LE(pct, 1.0);
 
   auto numBuckets = buckets_.size();
 
   // Compute the counts in each bucket
-//  std::vector<uint64_t> counts(numBuckets);
   std::uint64_t totalCount = 0;
-  for (size_t n = 0; n < numBuckets; ++n) {
-    std::uint64_t bucketCount =
-        countFromBucket(const_cast<const BucketType&>(buckets_[n]));
-    counts_[n] = bucketCount;
-    totalCount += bucketCount;
+  for (std::size_t n = 0; n < numBuckets; ++n) {
+    totalCount += buckets_[n].count;
   }
 
   // If there are no elements, just return the lowest bucket.
@@ -84,35 +78,73 @@ std::size_t HistogramBuckets::getPercentileBucketIdx(double pct,
     return 1;
   }
 
-  // Loop through all the buckets, keeping track of each bucket's
-  // percentile range: [0,10], [10,17], [17,45], etc.  When we find a range
-  // that includes our desired percentile, we return that bucket index.
-  double prevPct = 0.0;
-  double curPct = 0.0;
-  std::uint64_t curCount = 0;
-  std::size_t idx;
-  for (idx = 0; idx < numBuckets; ++idx) {
-    if (counts_[idx] == 0) {
-      // skip empty buckets
-      continue;
+#ifndef METRICS_REVERSE_SEARCH
+#define METRICS_REVERSE_SEARCH 1
+#endif
+
+  if (METRICS_REVERSE_SEARCH) {
+    // Loop through all the buckets, keeping track of each bucket's
+    // percentile range: [0,10], [10,17], [17,45], etc.  When we find a range
+    // that includes our desired percentile, we return that bucket index.
+    double prevPct = 1.0;
+    double curPct = 1.0;
+    std::uint64_t curCount = 0;
+    std::size_t idx;
+    for (idx = numBuckets - 1; idx >= 0; --idx) {
+      if (buckets_[idx].count == 0) {
+        // skip empty buckets
+        continue;
+      }
+
+      prevPct = curPct;
+      curCount += buckets_[idx].count;
+      curPct = 1 - static_cast<double>(curCount) / totalCount;
+      if (pct >= curPct) {
+        // This is the desired bucket
+        break;
+      }
     }
 
-    prevPct = curPct;
-    curCount += counts_[idx];
-    curPct = static_cast<double>(curCount) / totalCount;
-    if (pct <= curPct) {
-      // This is the desired bucket
-      break;
+    if (lowPct) {
+      *lowPct = curPct;
     }
-  }
+    if (highPct) {
+      *highPct = prevPct;
+    }
 
-  if (lowPct) {
-    *lowPct = prevPct;
+    return idx;
+  } else {
+    // Loop through all the buckets, keeping track of each bucket's
+    // percentile range: [0,10], [10,17], [17,45], etc.  When we find a range
+    // that includes our desired percentile, we return that bucket index.
+    double prevPct = 0.0;
+    double curPct = 0.0;
+    std::uint64_t curCount = 0;
+    std::size_t idx;
+    for (idx = 0; idx < numBuckets; ++idx) {
+      if (buckets_[idx].count == 0) {
+        // skip empty buckets
+        continue;
+      }
+
+      prevPct = curPct;
+      curCount += buckets_[idx].count;
+      curPct = static_cast<double>(curCount) / totalCount;
+      if (pct <= curPct) {
+        // This is the desired bucket
+        break;
+      }
+    }
+
+    if (lowPct) {
+      *lowPct = prevPct;
+    }
+    if (highPct) {
+      *highPct = curPct;
+    }
+
+    return idx;
   }
-  if (highPct) {
-    *highPct = curPct;
-  }
-  return idx;
 }
 
 HistogramBuckets::ValueType HistogramBuckets::getPercentileEstimate(
@@ -120,8 +152,7 @@ HistogramBuckets::ValueType HistogramBuckets::getPercentileEstimate(
   // Find the bucket where this percentile falls
   double lowPct;
   double highPct;
-  size_t bucketIdx =
-      getPercentileBucketIdx(pct, &lowPct, &highPct);
+  size_t bucketIdx = getPercentileBucketIdx(pct, &lowPct, &highPct);
   if (lowPct == 0.0 && highPct == 0.0) {
     // Invalid range -- the buckets must all be empty
     // Return the default value for ValueType.
