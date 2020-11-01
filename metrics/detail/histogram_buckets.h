@@ -120,9 +120,8 @@ class HistogramBuckets {
    * @return Returns the index of the bucket that contains the Nth percentile
    *         data point.
    */
-  std::size_t getPercentileBucketIdx(double pct,
-                                double* lowPct = nullptr,
-                                double* highPct = nullptr) const;
+  std::size_t getPercentileBucketIdx(double pct, double* lowPct = nullptr,
+                                     double* highPct = nullptr) const;
 
   /**
    * Estimate the value at the specified percentile.
@@ -182,4 +181,4 @@ class HistogramBuckets {
 
 }  // namespace detail
 
-} // namespace metrics
+}  // namespace metrics

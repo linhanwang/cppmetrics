@@ -26,6 +26,12 @@ TEST(Histogram, Test1000) {
 TEST(Histogram, TestEmpty) {
   Histogram h(1, 0, 100);
 
+  for (unsigned int n = 0; n < 1000; ++n) {
+    h.addValue(n);
+  }
+
+  h.clear();
+
   for (unsigned int n = 0; n <= 100; ++n) {
     double pct = n / 100.0;
 
