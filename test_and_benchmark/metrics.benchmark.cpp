@@ -33,6 +33,7 @@ static void BM_GaugeAddValue(benchmark::State& state) {
     GetGauge(GaugeTest).addValue(counter++);
   }
   benchmark::DoNotOptimize(GetGauge(GaugeTest).getGauge());
+  GetGauge(GaugeTest).clear();
 }
 
 static void BM_HistogramGetPercentile20(benchmark::State& state) {
@@ -73,12 +74,40 @@ static void BM_HistogramGetAvg20(benchmark::State& state) {
   GetHisogram(HistogramTimeUsed).clear();
 }
 
+static void BM_Serialize(benchmark::State& state) {
+  GetCounter(CounterPlaceOrder).addValue(124324);
+  GetCounter(CounterCancelOrder).addValue(124324);
+  GetCounter(CounterTest).addValue(124324);
+
+  GetGauge(GaugePnl).addValue(344123.133);
+  GetGauge(GaugeTest).addValue(342.234);
+
+  for (int i = 0; i < 1000; ++i) {
+    GetHisogram(HistogramMsgLatency).addValue(i);
+  }
+
+  for (int i = 0; i < 20'000; ++i) {
+    GetHisogram(HistogramTimeUsed).addValue(i);
+  }
+
+  for (int i = 0; i < 1000; ++i) {
+    GetHisogram(HistogramTest).addValue(i);
+  }
+
+  for (auto _ : state) {
+    benchmark::DoNotOptimize(GetJson());
+  }
+
+  Refresh();
+}
+
 BENCHMARK(BM_HistogramAddValue20);
 BENCHMARK(BM_CounterAddValue);
 BENCHMARK(BM_GaugeAddValue);
 BENCHMARK(BM_HistogramGetPercentile20);
 BENCHMARK(BM_HistogramGetPercentile20_Bad);
 BENCHMARK(BM_HistogramGetAvg20);
+BENCHMARK(BM_Serialize);
 
 // Run the benchmark
 BENCHMARK_MAIN();
