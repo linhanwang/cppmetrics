@@ -1,47 +1,45 @@
 #include <benchmark/benchmark.h>
-
 #include <metrics/histogram.h>
 
 using namespace metrics;
 
 static void BM_AddValue10(benchmark::State& state) {
-  Histogram h(1000'000, 0, 10'000'000);
+  Histogram h(1000, 0, 10'000);
 
-  int counter{0};
+  int counter{10};
   for (auto _ : state) {
-    h.addValue(counter);
+    h.addValue(counter++);
   }
 
   benchmark::DoNotOptimize(h.getAvg());
 }
 
-
 static void BM_AddValue20(benchmark::State& state) {
-  Histogram h(1000'000, 0, 20'000'000);
+  Histogram h(1000, 0, 20'000);
 
   int counter{0};
   for (auto _ : state) {
-    h.addValue(counter);
+    h.addValue(counter++);
   }
 
   benchmark::DoNotOptimize(h.getAvg());
 }
 
 static void BM_AddValue100(benchmark::State& state) {
-  Histogram h(1000'000, 0, 100'000'000);
+  Histogram h(1000, 0, 100'000);
 
   int counter{0};
   for (auto _ : state) {
-    h.addValue(counter);
+    h.addValue(counter++);
   }
 
   benchmark::DoNotOptimize(h.getAvg());
 }
 
 static void BM_GetPercentile10(benchmark::State& state) {
-  Histogram h(1000'000, 0, 10'000'000);
+  Histogram h(1000, 0, 10'000);
 
-  for (int i = 0; i < 10'000'000; ++i) {
+  for (int i = 0; i < 10'000; ++i) {
     h.addValue(i);
   }
 
@@ -51,9 +49,9 @@ static void BM_GetPercentile10(benchmark::State& state) {
 }
 
 static void BM_GetPercentile20(benchmark::State& state) {
-  Histogram h(1000'000, 0, 20'000'000);
+  Histogram h(1000, 0, 20'000);
 
-  for (int i = 0; i < 20'000'000; ++i) {
+  for (int i = 0; i < 20'000; ++i) {
     h.addValue(i);
   }
 
@@ -63,9 +61,9 @@ static void BM_GetPercentile20(benchmark::State& state) {
 }
 
 static void BM_GetPercentile20_Bad(benchmark::State& state) {
-  Histogram h(1000'000, 0, 20'000'000);
+  Histogram h(1000, 0, 20'000);
 
-  for (int i = 0; i < 20'000'000; ++i) {
+  for (int i = 0; i < 20'000; ++i) {
     h.addValue(i);
   }
 
@@ -75,9 +73,9 @@ static void BM_GetPercentile20_Bad(benchmark::State& state) {
 }
 
 static void BM_GetPercentile100(benchmark::State& state) {
-  Histogram h(1000'000, 0, 100'000'000);
+  Histogram h(1000, 0, 100'000);
 
-  for (int i = 0; i < 100'000'000; ++i) {
+  for (int i = 0; i < 100'000; ++i) {
     h.addValue(i);
   }
 
@@ -87,9 +85,9 @@ static void BM_GetPercentile100(benchmark::State& state) {
 }
 
 static void BM_GetAvg10(benchmark::State& state) {
-  Histogram h(1000'000, 0, 10'000'000);
+  Histogram h(1000, 0, 10'000);
 
-  for (int i = 0; i < 10'000'000; ++i) {
+  for (int i = 0; i < 10'000; ++i) {
     h.addValue(i);
   }
 
@@ -99,9 +97,9 @@ static void BM_GetAvg10(benchmark::State& state) {
 }
 
 static void BM_GetAvg20(benchmark::State& state) {
-  Histogram h(1000'000, 0, 20'000'000);
+  Histogram h(1000, 0, 20'000);
 
-  for (int i = 0; i < 20'000'000; ++i) {
+  for (int i = 0; i < 20'000; ++i) {
     h.addValue(i);
   }
 
@@ -111,9 +109,9 @@ static void BM_GetAvg20(benchmark::State& state) {
 }
 
 static void BM_GetAvg100(benchmark::State& state) {
-  Histogram h(1000'000, 0, 100'000'000);
+  Histogram h(1000, 0, 100'000);
 
-  for (int i = 0; i < 100'000'000; ++i) {
+  for (int i = 0; i < 100'000; ++i) {
     h.addValue(i);
   }
 

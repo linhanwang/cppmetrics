@@ -1,1 +1,1 @@
-add_library(metrics SHARED detail/histogram_buckets.cpp)
+add_library(metrics SHARED detail/histogram_buckets.cpp config.cpp)
