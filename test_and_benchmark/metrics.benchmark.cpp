@@ -54,7 +54,7 @@ static void BM_HistogramGetPercentile20_Bad(benchmark::State& state) {
   }
 
   for (auto _ : state) {
-    benchmark::DoNotOptimize(GetHisogram(HistogramTimeUsed).getPercentileEstimate(0.50));
+    benchmark::DoNotOptimize(GetHisogram(HistogramTimeUsed).getPercentileEstimate(0.05));
   }
 
   GetHisogram(HistogramTimeUsed).clear();

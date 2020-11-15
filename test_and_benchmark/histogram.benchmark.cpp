@@ -68,7 +68,7 @@ static void BM_GetPercentile20_Bad(benchmark::State& state) {
   }
 
   for (auto _ : state) {
-    benchmark::DoNotOptimize(h.getPercentileEstimate(0.50));
+    benchmark::DoNotOptimize(h.getPercentileEstimate(0.05));
   }
 }
 
