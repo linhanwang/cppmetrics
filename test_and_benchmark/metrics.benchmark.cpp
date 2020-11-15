@@ -42,8 +42,7 @@ static void BM_HistogramGetPercentile20(benchmark::State& state) {
   }
 
   for (auto _ : state) {
-    benchmark::DoNotOptimize(
-        GetHisogram(HistogramTimeUsed).getPercentileEstimate(0.95));
+    benchmark::DoNotOptimize(GetHisogram(HistogramTimeUsed).getPercentileEstimate(0.95));
   }
 
   GetHisogram(HistogramTimeUsed).clear();
@@ -55,8 +54,7 @@ static void BM_HistogramGetPercentile20_Bad(benchmark::State& state) {
   }
 
   for (auto _ : state) {
-    benchmark::DoNotOptimize(
-        GetHisogram(HistogramTimeUsed).getPercentileEstimate(0.50));
+    benchmark::DoNotOptimize(GetHisogram(HistogramTimeUsed).getPercentileEstimate(0.50));
   }
 
   GetHisogram(HistogramTimeUsed).clear();
@@ -95,7 +93,7 @@ static void BM_Serialize(benchmark::State& state) {
   }
 
   for (auto _ : state) {
-    benchmark::DoNotOptimize(GetJson());
+    benchmark::DoNotOptimize(GetMetricsData());
   }
 
   Refresh();

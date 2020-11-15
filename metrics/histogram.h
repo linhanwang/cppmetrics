@@ -9,8 +9,7 @@ class Histogram {
   typedef std::int64_t ValueType;
   typedef detail::Bucket Bucket;
 
-  Histogram(ValueType bucketSize, ValueType min, ValueType max)
-      : buckets_(bucketSize, min, max, Bucket()) {}
+  Histogram(ValueType bucketSize, ValueType min, ValueType max) : buckets_(bucketSize, min, max, Bucket()) {}
 
   /* Add a data point to the histogram */
   void addValue(ValueType value) { buckets_.getByValue(value).add(value, 1); }
@@ -22,9 +21,7 @@ class Histogram {
     }
   }
 
-  ValueType getAvg() const {
-    return static_cast<ValueType>(buckets_.computeAvg());
-  }
+  ValueType getAvg() const { return static_cast<ValueType>(buckets_.computeAvg()); }
 
   /**
    * Estimate the value at the specified percentile.
@@ -34,9 +31,7 @@ class Histogram {
    * @return Returns an estimate for N, where N is the number where exactly pct
    *         percentage of the data points in the histogram are less than N.
    */
-  ValueType getPercentileEstimate(double pct) const {
-    return buckets_.getPercentileEstimate(pct);
-  }
+  ValueType getPercentileEstimate(double pct) const { return buckets_.getPercentileEstimate(pct); }
 
  private:
   detail::HistogramBuckets buckets_;

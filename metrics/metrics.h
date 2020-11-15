@@ -1,60 +1,68 @@
 #include <metrics/config.h>
 
+#include <ostream>
 #include <string>
-
-#include "rapidjson/writer.h"  // for stringify JSON
 
 namespace metrics {
 
 inline Counter& GetCounter(CounterName counter) { return counter_arr[counter]; }
 inline Gauge& GetGauge(GaugeName gauge) { return gauge_arr[gauge]; }
-inline Histogram& GetHisogram(HistogramName histogram) {
-  return histogram_arr[histogram];
+inline Histogram& GetHisogram(HistogramName histogram) { return histogram_arr[histogram]; }
+
+struct MetricsData {
+  std::string host_name{};
+  std::string service_name{};
+  int core_id{};
+
+  std::array<std::int64_t, NumCounters> counters;
+  std::array<double, NumGauges> gauges;
+  std::array<std::int64_t, NumHistograms> avgs;
+  std::array<std::int64_t, NumHistograms> v95s;
+  std::array<std::int64_t, NumHistograms> v99s;
+
+  friend std::ostream& operator<<(std::ostream& os, const MetricsData& data);
+};
+
+inline std::ostream& operator<<(std::ostream& os, const MetricsData& data) {
+  os << "host_name: " << data.host_name << " service_name: " << data.service_name << " core_id: " << data.core_id
+     << " counters: [";
+  for (int i = 0; i < NumCounters; ++i) os << data.counters[i] << " ";
+
+  os << "] gauges: [";
+  for (int i = 0; i < NumGauges; ++i) os << data.gauges[i] << " ";
+
+  os << "] avgs: [";
+  for (int i = 0; i < NumHistograms; ++i) os << data.avgs[i] << " ";
+
+  os << "] v95s: [";
+  for (int i = 0; i < NumHistograms; ++i) os << data.v95s[i] << " ";
+
+  os << "] v99s: [";
+  for (int i = 0; i < NumHistograms; ++i) os << data.v99s[i] << " ";
+  os << "]";
+
+  return os;
 }
 
-std::string GetJson() {
-  using namespace rapidjson;
-
-  StringBuffer sb;
-  Writer<StringBuffer> writer(sb);
-
-  writer.StartObject();
-
-  // tags
-  writer.String("hostname");
-  writer.String("hb14");
-
-  writer.String("ServiceName");
-  writer.String("magic");
-
-  writer.String("CoreId");
-  writer.Int(2);
+MetricsData GetMetricsData() {
+  MetricsData metrics_data;
 
   // statistics
   for (int i = 0; i < NumCounters; ++i) {
-    writer.String(counter_keys[i].c_str());
-    writer.Int64(counter_arr[i].getCounter());
+    metrics_data.counters[i] = counter_arr[i].getCounter();
   }
 
   for (int i = 0; i < NumGauges; ++i) {
-    writer.String(gauge_keys[i].c_str());
-    writer.Double(gauge_arr[i].getGauge());
+    metrics_data.gauges[i] = gauge_arr[i].getGauge();
   }
 
   for (int i = 0; i < NumHistograms; ++i) {
-    writer.String((histogram_keys[i] + "Avg").c_str());
-    writer.Int64(histogram_arr[i].getAvg());
-
-    writer.String((histogram_keys[i] + "95").c_str());
-    writer.Int64(histogram_arr[i].getPercentileEstimate(0.95));
-
-    writer.String((histogram_keys[i] + "99").c_str());
-    writer.Int64(histogram_arr[i].getPercentileEstimate(0.99));
+    metrics_data.avgs[i] = histogram_arr[i].getAvg();
+    metrics_data.v95s[i] = histogram_arr[i].getPercentileEstimate(0.95);
+    metrics_data.v99s[i] = histogram_arr[i].getPercentileEstimate(0.99);
   }
 
-  writer.EndObject();
-
-  return sb.GetString();
+  return metrics_data;
 }
 
 void Refresh() {
@@ -71,10 +79,10 @@ void Refresh() {
   }
 }
 
-std::string SerializeAndRefresh() {
-  std::string tmp = GetJson();
+MetricsData GetMetricsDataAndRefresh() {
+  MetricsData metrics_data = GetMetricsData();
   Refresh();
-  return tmp;
+  return metrics_data;
 }
 
 }  // namespace metrics

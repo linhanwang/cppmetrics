@@ -14,9 +14,7 @@ TEST(Metrics, HistogramTest) {
     double pct = n / 1000.0;
 
     // Check getPercentileEstimate()
-    EXPECT_TRUE(
-        std::abs(int(
-            n - GetHisogram(HistogramTest).getPercentileEstimate(pct))) <= 1);
+    EXPECT_TRUE(std::abs(int(n - GetHisogram(HistogramTest).getPercentileEstimate(pct))) <= 10);
   }
 
   EXPECT_EQ(499, GetHisogram(HistogramTest).getAvg());
@@ -80,5 +78,23 @@ TEST(Metrics, SerializeTest) {
       "\"HistogramTestAvg\":499,\"HistogramTest95\":950,\"HistogramTest99\":"
       "990}";
 
-  EXPECT_EQ(result, GetJson());
+  MetricsData metrics_data;
+  metrics_data.counters = {124324, 124324, 124324};
+  metrics_data.gauges = {344123, 342.234};
+  metrics_data.avgs = {499, 9999, 499};
+  metrics_data.v95s = {950, 19000, 950};
+  metrics_data.v99s = {989, 19799, 989};
+
+  MetricsData calc_data = GetMetricsData();
+
+  EXPECT_EQ(metrics_data.counters, calc_data.counters);
+  EXPECT_EQ(metrics_data.avgs, calc_data.avgs);
+  EXPECT_EQ(metrics_data.v95s, calc_data.v95s);
+  EXPECT_EQ(metrics_data.v99s, calc_data.v99s);
+
+  for (int i = 0; i < NumGauges; ++i) {
+    EXPECT_TRUE((metrics_data.gauges[i] - calc_data.gauges[i]) / (metrics_data.gauges[i] + calc_data.gauges[i]) >
+                -1e-3);
+    EXPECT_TRUE((metrics_data.gauges[i] - calc_data.gauges[i]) / (metrics_data.gauges[i] + calc_data.gauges[i]) < 1e-3);
+  }
 }

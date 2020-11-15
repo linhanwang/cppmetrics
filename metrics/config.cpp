@@ -32,9 +32,9 @@ std::array<std::string, NumHistograms> histogram_keys = {
     "HistogramTest"
 };
 std::array<Histogram, NumHistograms> histogram_arr = {
-    Histogram{100, 0, 1000},
+    Histogram{50, 0, 1000},
     Histogram{1000, 0, 20'000},
-    Histogram{1, 0, 1000}
+    Histogram{50, 0, 1000}
 };
 
 // clang-format on
