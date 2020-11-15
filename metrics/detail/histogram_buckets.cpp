@@ -36,13 +36,13 @@ std::size_t HistogramBuckets::getBucketIdx(ValueType value) const {
 
 double HistogramBuckets::computeAvg() const {
   std::uint64_t count = 0;
-  for (std::size_t n = 0; n < buckets_.size(); ++n) {
+  for (std::size_t n = search_begin_idx_; n < search_end_idx_ + 1; ++n) {
     count += buckets_[n].count;
   }
   if (count == 0) return 0;
 
   ValueType sum = 0;
-  for (std::size_t n = 0; n < buckets_.size(); ++n) {
+  for (std::size_t n = search_begin_idx_; n < search_end_idx_ + 1; ++n) {
     sum += buckets_[n].sum;
   }
 
@@ -58,7 +58,7 @@ std::size_t HistogramBuckets::getPercentileBucketIdx(double pct, double* lowPct,
 
   // Compute the counts in each bucket
   std::uint64_t totalCount = 0;
-  for (std::size_t n = 0; n < numBuckets; ++n) {
+  for (std::size_t n = search_begin_idx_; n < search_end_idx_ + 1; ++n) {
     totalCount += buckets_[n].count;
   }
 
@@ -90,7 +90,7 @@ std::size_t HistogramBuckets::getPercentileBucketIdx(double pct, double* lowPct,
     double curPct = 1.0;
     std::uint64_t curCount = 0;
     std::size_t idx;
-    for (idx = numBuckets - 1; idx >= 0; --idx) {
+    for (idx = search_end_idx_; idx > search_begin_idx_ - 1; --idx) {
       if (buckets_[idx].count == 0) {
         // skip empty buckets
         continue;
@@ -121,7 +121,7 @@ std::size_t HistogramBuckets::getPercentileBucketIdx(double pct, double* lowPct,
     double curPct = 0.0;
     std::uint64_t curCount = 0;
     std::size_t idx;
-    for (idx = 0; idx < numBuckets; ++idx) {
+    for (idx = search_begin_idx_; idx < search_end_idx_ + 1; ++idx) {
       if (buckets_[idx].count == 0) {
         // skip empty buckets
         continue;

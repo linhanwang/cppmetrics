@@ -15,8 +15,7 @@ class HistogramBuckets {
   typedef std::uint64_t ValueType;
   typedef Bucket BucketType;
 
-  HistogramBuckets(ValueType bucketSize, ValueType min, ValueType max,
-                   const BucketType& defaultBucket);
+  HistogramBuckets(ValueType bucketSize, ValueType min, ValueType max, const BucketType& defaultBucket);
 
   /* Returns the bucket size of each bucket in the histogram. */
   ValueType getBucketSize() const { return bucketSize_; }
@@ -41,12 +40,18 @@ class HistogramBuckets {
 
   /* Returns the bucket for the specified value */
   BucketType& getByValue(ValueType value) {
-    return buckets_[getBucketIdx(value)];
+    size_t bucket_idx = getBucketIdx(value);
+    search_begin_idx_ = std::min(search_begin_idx_, bucket_idx);
+    search_end_idx_ = std::max(search_end_idx_, bucket_idx);
+    return buckets_[bucket_idx];
   }
 
   /* Returns the bucket for the specified value */
   const BucketType& getByValue(ValueType value) const {
-    return buckets_[getBucketIdx(value)];
+    size_t bucket_idx = getBucketIdx(value);
+    search_begin_idx_ = std::min(search_begin_idx_, bucket_idx);
+    search_end_idx_ = std::max(search_end_idx_, bucket_idx);
+    return buckets_[bucket_idx];
   }
 
   /**
@@ -120,8 +125,7 @@ class HistogramBuckets {
    * @return Returns the index of the bucket that contains the Nth percentile
    *         data point.
    */
-  std::size_t getPercentileBucketIdx(double pct, double* lowPct = nullptr,
-                                     double* highPct = nullptr) const;
+  std::size_t getPercentileBucketIdx(double pct, double* lowPct = nullptr, double* highPct = nullptr) const;
 
   /**
    * Estimate the value at the specified percentile.
@@ -144,15 +148,9 @@ class HistogramBuckets {
    * bucket is for all values greater than max.  The buckets tracking values in
    * the [min, max) actually start at the second bucket.
    */
-  typename std::vector<BucketType>::const_iterator begin() const {
-    return buckets_.begin();
-  }
-  typename std::vector<BucketType>::iterator begin() {
-    return buckets_.begin();
-  }
-  typename std::vector<BucketType>::const_iterator end() const {
-    return buckets_.end();
-  }
+  typename std::vector<BucketType>::const_iterator begin() const { return buckets_.begin(); }
+  typename std::vector<BucketType>::iterator begin() { return buckets_.begin(); }
+  typename std::vector<BucketType>::const_iterator end() const { return buckets_.end(); }
   typename std::vector<BucketType>::iterator end() { return buckets_.end(); }
 
  private:
@@ -177,6 +175,9 @@ class HistogramBuckets {
   ValueType min_;
   ValueType max_;
   std::vector<BucketType> buckets_;
+
+  mutable size_t search_end_idx_{};
+  mutable size_t search_begin_idx_{};
 };
 
 }  // namespace detail
