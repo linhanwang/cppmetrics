@@ -36,15 +36,12 @@ std::size_t HistogramBuckets::getBucketIdx(ValueType value) const {
 
 double HistogramBuckets::computeAvg() const {
   std::uint64_t count = 0;
-  for (std::size_t n = search_begin_idx_; n < search_end_idx_ + 1; ++n) {
-    count += buckets_[n].count;
-  }
-  if (count == 0) return 0;
-
   ValueType sum = 0;
-  for (std::size_t n = search_begin_idx_; n < search_end_idx_ + 1; ++n) {
+  for (std::size_t n = 0; n < buckets_.size(); ++n) {
+    count += buckets_[n].count;
     sum += buckets_[n].sum;
   }
+  if (count == 0) return 0;
 
   return static_cast<double>(sum) / static_cast<double>(count);
 }
