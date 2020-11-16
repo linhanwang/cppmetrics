@@ -87,7 +87,7 @@ std::size_t HistogramBuckets::getPercentileBucketIdx(double pct, double* lowPct,
     double curPct = 1.0;
     std::uint64_t curCount = 0;
     std::size_t idx;
-    for (idx = search_end_idx_; idx > search_begin_idx_ - 1; --idx) {
+    for (idx = search_end_idx_; idx >= search_begin_idx_; --idx) {
       if (buckets_[idx].count == 0) {
         // skip empty buckets
         continue;
