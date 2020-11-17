@@ -61,18 +61,6 @@ static void BM_GetPercentile20WholeRange(benchmark::State& state) {
   }
 }
 
-static void BM_GetPercentile100(benchmark::State& state) {
-  Histogram h(1000, 0, 100'000);
-
-  for (int i = 0; i < 100'000; ++i) {
-    h.addValue(i);
-  }
-
-  for (auto _ : state) {
-    benchmark::DoNotOptimize(h.getPercentileEstimate(0.95));
-  }
-}
-
 static void BM_GetPercentile50Middle(benchmark::State& state) {
   Histogram h(1000, 0, 50'000);
 
